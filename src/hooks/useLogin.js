@@ -5,16 +5,20 @@ import { toast } from "react-toastify";
 
 export const useLogin = () => {
   const navigate = useNavigate();
+
   return useMutation({
     mutationFn: login,
     onSuccess: (data) => {
       localStorage.setItem("token", data.token);
-      navigate("/dashboard");
+      if (data.admin) {
+        localStorage.setItem("admin", JSON.stringify(data.admin));
+      }
       toast.success("تم تسجيل الدخول بنجاح");
+      navigate("/dashboard");
     },
     onError: (error) => {
-      console.log(error);
-      toast.error("خطأ في تسجيل الدخول");
+      console.error("Login error:", error);
+      toast.error(error.message || "خطأ في تسجيل الدخول");
     },
   });
 };

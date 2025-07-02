@@ -13,12 +13,12 @@ const RoleRow = ({ role, onEdit, onDelete }) => {
       </td>
       <td className="py-4 px-6">
         <div className="flex flex-wrap gap-2">
-          {role.permissions.map((permission, index) => (
+          {role.permissions.map((permission) => (
             <span
-              key={index}
+              key={permission.id}
               className="bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 text-xs font-semibold px-2.5 py-1 rounded-full"
             >
-              {permission}
+              {permission.name}
             </span>
           ))}
         </div>

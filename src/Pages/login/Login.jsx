@@ -30,7 +30,7 @@ export default function Login() {
   });
 
   const onSubmit = (data) => {
-    login({ data });
+    login(data);
   };
 
   const togglepasswordVisibility = () => {

@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { FaArrowRight, FaPaperPlane } from "react-icons/fa";
 import TicketStatusBadge from "./TicketStatusBadge";
-import TicketPriorityBadge from "./TicketPriorityBadge";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
 
@@ -93,7 +92,6 @@ const TicketDetails = ({ ticket, onBack, onReply }) => {
         </div>
         <div className="flex items-center gap-4">
           <TicketStatusBadge status={ticket.status} />
-          <TicketPriorityBadge priority={ticket.priority} />
         </div>
       </header>
 

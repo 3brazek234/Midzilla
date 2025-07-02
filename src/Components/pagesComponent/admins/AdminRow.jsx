@@ -23,7 +23,7 @@ const AdminRow = ({ admin, onDetails, onEdit, onDelete }) => {
       </td>
       <td className="py-3 px-6">
         <div className="font-medium text-gray-800 dark:text-white">
-          {admin.roles.name}
+          {admin.roles[0].name}
         </div>
       </td>
       <td className="py-3 px-6">

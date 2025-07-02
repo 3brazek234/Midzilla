@@ -6,25 +6,27 @@ import EditAdminModal from "../../Components/pagesComponent/admins/EditAdminModa
 import DeleteAdminModal from "../../Components/pagesComponent/admins/DeleteAdminModal";
 import AdminDetailsModal from "../../Components/pagesComponent/admins/AdminDetailsModal";
 import { useAdmins } from "../../hooks/useAdmins";
+import { useDeleteAdmin } from "../../hooks/useDeleteAdmin";
+import LoadingSpinner from "../../Components/ui/loadingSpinner";
+
 const Admin = () => {
-  const { data: adminsData } = useAdmins();
+  const { data: adminsData, isLoading } = useAdmins();
+  const { mutate: deleteAdmin } = useDeleteAdmin();
   const [isAddModalOpen, setAddModalOpen] = useState(false);
   const [isEditModalOpen, setEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setDeleteModalOpen] = useState(false);
   const [isDetailsModalOpen, setDetailsModalOpen] = useState(false);
   const [selectedAdmin, setSelectedAdmin] = useState(null);
 
-
   const handleUpdateAdmin = (updatedAdmin) => {
-    setAdminsData(
-      adminsData.map((admin) =>
-        admin.id === updatedAdmin.id ? updatedAdmin : admin
-      )
-    );
+    setEditModalOpen(false);
+    setSelectedAdmin(null);
   };
 
   const handleDeleteAdmin = () => {
-    setAdminsData(adminsData.filter((admin) => admin.id !== selectedAdmin.id));
+    if (selectedAdmin) {
+      deleteAdmin(selectedAdmin.id);
+    }
     setDeleteModalOpen(false);
     setSelectedAdmin(null);
   };
@@ -44,11 +46,15 @@ const Admin = () => {
     setDeleteModalOpen(true);
   };
 
+  if (isLoading) {
+    return <LoadingSpinner size="xl" color="white" />;
+  }
+
   return (
     <div className="p-6 bg-gray-50 dark:bg-gray-900 min-h-screen" dir="rtl">
       <AdminsHeader onAddAdminClick={() => setAddModalOpen(true)} />
       <AdminsTable
-        admins={adminsData}
+        admins={adminsData?.data?.admins}
         onDetails={openDetailsModal}
         onEdit={openEditModal}
         onDelete={openDeleteModal}
@@ -56,7 +62,6 @@ const Admin = () => {
       <AddAdminModal
         isOpen={isAddModalOpen}
         onClose={() => setAddModalOpen(false)}
-        onAddAdmin={handleAddAdmin}
       />
       {selectedAdmin && (
         <EditAdminModal

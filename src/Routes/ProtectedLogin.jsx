@@ -1,10 +1,11 @@
 import React from "react";
-import { Navigate } from "react-router-dom";
+import { Navigate, useNavigate } from "react-router-dom";
 
 export default function ProtectedLogin({ children }) {
+  const navigate = useNavigate();
   const token = localStorage.getItem("token");
   if (!token) {
-    return <Navigate to="/" />;
+    return navigate("/");
   }
   return children;
 }

@@ -1,6 +1,7 @@
 import AdminRow from "./AdminRow";
 
 const AdminsTable = ({ admins, onDetails, onEdit, onDelete }) => {
+  
   return (
     <div className="bg-white dark:bg-gray-800 shadow-lg rounded-lg overflow-hidden">
       <div className="overflow-x-auto">
@@ -22,15 +23,23 @@ const AdminsTable = ({ admins, onDetails, onEdit, onDelete }) => {
             </tr>
           </thead>
           <tbody>
-            {admins.map((admin) => (
-              <AdminRow
-                key={admin.id}
-                admin={admin}
-                onDetails={onDetails}
-                onEdit={onEdit}
-                onDelete={onDelete}
-              />
-            ))}
+            {admins.length > 0 ? (
+              admins.map((admin) => (
+                <AdminRow
+                  key={admin.id}
+                  admin={admin}
+                  onDetails={onDetails}
+                  onEdit={onEdit}
+                  onDelete={onDelete}
+                />
+              ))
+            ) : (
+              <tr>
+                <td colSpan="4" className="py-4 px-6 text-center">
+                  لا يوجد مديرين
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>

@@ -1,5 +1,4 @@
 import TicketStatusBadge from "./TicketStatusBadge";
-import TicketPriorityBadge from "./TicketPriorityBadge";
 import { formatDistanceToNow } from "date-fns";
 import { ar } from "date-fns/locale";
 
@@ -32,9 +31,7 @@ const TicketRow = ({ ticket, onSelectTicket }) => {
       <td className="py-4 px-6">
         <TicketStatusBadge status={ticket.status} />
       </td>
-      <td className="py-4 px-6">
-        <TicketPriorityBadge priority={ticket.priority} />
-      </td>
+    
       <td className="py-4 px-6 text-sm text-gray-600 dark:text-gray-300">
         {formatDistanceToNow(new Date(ticket.updatedAt), {
           addSuffix: true,

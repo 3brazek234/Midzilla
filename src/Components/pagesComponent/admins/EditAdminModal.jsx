@@ -1,110 +1,184 @@
-import { useState, useEffect } from "react";
 import Modal from "../../ui/Modal";
-import { rolesData } from "../../../Constants/rolesData";
+import { useForm } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
+import * as yup from "yup";
+import { useUpdateAdmin } from "../../../hooks/useUpdateAdmin";
+import { useGetRoles } from "../../../hooks/useGetRoles";
+import { useEffect } from "react";
 
-const EditAdminModal = ({ isOpen, onClose, onUpdateAdmin, admin }) => {
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
-  const [role, setRole] = useState("");
-  const [status, setStatus] = useState("نشط");
+const schema = yup.object().shape({
+  name: yup.string().required("الاسم مطلوب"),
+  email: yup
+    .string()
+    .email("البريد الإلكتروني غير صحيح")
+    .required("البريد الإلكتروني مطلوب"),
+  status: yup.string().required("الحالة مطلوبة"),
+  roles: yup.string().required("الدور مطلوب"), // Keep as string since we convert to array on submit
+});
 
+const EditAdminModal = ({ isOpen, onClose, admin }) => {
+  const { mutate: updateAdmin } = useUpdateAdmin();
+  const { data: rolesData } = useGetRoles();
+
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm({
+    resolver: yupResolver(schema),
+    defaultValues: {
+      name: admin?.name || "",
+      email: admin?.email || "",
+      phone: admin?.phone || "",
+      status: admin?.status || "active",
+      roles: admin?.roles?.[0]?.id || "", // Take the first role since we're using single selection
+    },
+  });
+
+  // Reset form when admin data changes
   useEffect(() => {
     if (admin) {
-      setName(admin.name);
-      setEmail(admin.email);
-      setPhone(admin.phone || "");
-      setRole(admin.role);
-      setStatus(admin.status);
+      reset({
+        name: admin.name || "",
+        email: admin.email || "",
+        phone: admin.phone || "",
+        status: admin.status || "active",
+        roles: admin.roles?.[0]?.id || "",
+      });
     }
-  }, [admin]);
+  }, [admin, reset]);
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (!name || !email || !role) return;
-
-    const updatedAdmin = {
-      ...admin,
-      name,
-      email,
-      phone,
-      role,
-      status,
-      permissions: rolesData.find((r) => r.name === role)?.permissions || [],
+  const onSubmit = (formData) => {
+    const data = {
+      ...formData,
+      roles: [formData.roles] // Convert single role to array
     };
+    updateAdmin({ data, id: admin.id });
+    onClose();
+  };
 
-    onUpdateAdmin(updatedAdmin);
+  const handleClose = () => {
+    reset();
     onClose();
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="تعديل بيانات المدير">
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <InputField
-          label="الاسم الكامل"
-          id="adminName"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          required
-        />
-        <InputField
-          label="البريد الإلكتروني"
-          id="adminEmail"
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-        />
-        <InputField
-          label="رقم الهاتف"
-          id="adminPhone"
-          type="tel"
-          value={phone}
-          onChange={(e) => setPhone(e.target.value)}
-        />
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label
-              htmlFor="adminRole"
-              className="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-300"
-            >
-              الدور
-            </label>
-            <select
-              id="adminRole"
-              value={role}
-              onChange={(e) => setRole(e.target.value)}
-              className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-            >
-              {rolesData.map((r) => (
-                <option key={r.id} value={r.name}>
-                  {r.name}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label
-              htmlFor="adminStatus"
-              className="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-300"
-            >
-              الحالة
-            </label>
-            <select
-              id="adminStatus"
-              value={status}
-              onChange={(e) => setStatus(e.target.value)}
-              className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-            >
-              <option value="نشط">نشط</option>
-              <option value="غير نشط">غير نشط</option>
-            </select>
-          </div>
+    <Modal isOpen={isOpen} onClose={handleClose} title="تعديل بيانات المدير">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" dir="rtl">
+        {/* Name Field */}
+        <div>
+          <label
+            htmlFor="name"
+            className="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-300"
+          >
+            الاسم الكامل
+          </label>
+          <input
+            type="text"
+            id="name"
+            {...register("name")}
+            className={`bg-gray-50 border text-gray-900 text-sm rounded-lg block w-full p-2.5 dark:bg-gray-700 dark:text-white ${
+              errors.name
+                ? "border-red-500 dark:border-red-400 focus:ring-red-500 focus:border-red-500"
+                : "border-gray-300 dark:border-gray-600 focus:ring-blue-500 focus:border-blue-500"
+            }`}
+          />
+          {errors.name && (
+            <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+              {errors.name.message}
+            </p>
+          )}
         </div>
+
+        {/* Email Field */}
+        <div>
+          <label
+            htmlFor="email"
+            className="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-300"
+          >
+            البريد الإلكتروني
+          </label>
+          <input
+            type="email"
+            id="email"
+            {...register("email")}
+            className={`bg-gray-50 border text-gray-900 text-sm rounded-lg block w-full p-2.5 dark:bg-gray-700 dark:text-white ${
+              errors.email
+                ? "border-red-500 dark:border-red-400 focus:ring-red-500 focus:border-red-500"
+                : "border-gray-300 dark:border-gray-600 focus:ring-blue-500 focus:border-blue-500"
+            }`}
+          />
+          {errors.email && (
+            <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+              {errors.email.message}
+            </p>
+          )}
+        </div>
+
+        {/* Roles Field */}
+        <div>
+          <label
+            htmlFor="roles"
+            className="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-300"
+          >
+            الدور
+          </label>
+          <select
+            id="roles"
+            {...register("roles")}
+            className={`bg-gray-50 border text-gray-900 text-sm rounded-lg block w-full p-2.5 dark:bg-gray-700 dark:text-white ${
+              errors.roles
+                ? "border-red-500 dark:border-red-400 focus:ring-red-500 focus:border-red-500"
+                : "border-gray-300 dark:border-gray-600 focus:ring-blue-500 focus:border-blue-500"
+            }`}
+          >
+            <option value="">اختر الدور</option>
+            {rolesData?.data?.roles?.map((role) => (
+              <option key={role.id} value={role.id}>
+                {role.name}
+              </option>
+            ))}
+          </select>
+          {errors.roles && (
+            <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+              {errors.roles.message}
+            </p>
+          )}
+        </div>
+
+        {/* Status Field */}
+        <div>
+          <label
+            htmlFor="status"
+            className="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-300"
+          >
+            الحالة
+          </label>
+          <select
+            id="status"
+            {...register("status")}
+            className={`bg-gray-50 border text-gray-900 text-sm rounded-lg block w-full p-2.5 dark:bg-gray-700 dark:text-white ${
+              errors.status
+                ? "border-red-500 dark:border-red-400 focus:ring-red-500 focus:border-red-500"
+                : "border-gray-300 dark:border-gray-600 focus:ring-blue-500 focus:border-blue-500"
+            }`}
+          >
+            <option value="active">نشط</option>
+            <option value="inactive">غير نشط</option>
+          </select>
+          {errors.status && (
+            <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+              {errors.status.message}
+            </p>
+          )}
+        </div>
+
+        {/* Action Buttons */}
         <div className="flex justify-end gap-3 pt-4">
           <button
             type="button"
-            onClick={onClose}
+            onClick={handleClose}
             className="py-2 px-5 text-sm font-medium text-gray-700 bg-white rounded-lg border border-gray-200 hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
           >
             إلغاء
@@ -120,31 +194,5 @@ const EditAdminModal = ({ isOpen, onClose, onUpdateAdmin, admin }) => {
     </Modal>
   );
 };
-
-const InputField = ({
-  label,
-  id,
-  value,
-  onChange,
-  type = "text",
-  required = false,
-}) => (
-  <div>
-    <label
-      htmlFor={id}
-      className="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-300"
-    >
-      {label}
-    </label>
-    <input
-      type={type}
-      id={id}
-      value={value}
-      onChange={onChange}
-      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white"
-      required={required}
-    />
-  </div>
-);
 
 export default EditAdminModal; 

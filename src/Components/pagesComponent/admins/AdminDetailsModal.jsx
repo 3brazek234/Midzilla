@@ -46,14 +46,7 @@ const AdminDetailsModal = ({ isOpen, onClose, admin }) => {
             الصلاحيات الممنوحة
           </h3>
           <div className="flex flex-wrap gap-2">
-            {admin.permissions.map((permission, index) => (
-              <span
-                key={index}
-                className="bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 text-sm font-semibold px-3 py-1.5 rounded-full"
-              >
-                {permission}
-              </span>
-            ))}
+            {admin.roles[0].name}
           </div>
         </div>
         <div className="flex justify-end pt-4">
